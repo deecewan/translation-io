@@ -7,6 +7,10 @@
     "name": "David Buchan-Swanson",
     "email": "david.buchanswanson@gmail.com"
   },
+  "files": [
+    "lib",
+    "src"
+  ],
   "bin": {
     "translate": "lib/cli.js"
   },
@@ -47,6 +51,7 @@
   },
   "scripts": {
     "build": "babel -d lib/ src",
-    "build:watch": "yarn build -- --watch"
+    "build:watch": "yarn build -- --watch",
+    "prepublish": "yarn build"
   }
 }
