@@ -2,6 +2,8 @@
 
 > An unofficial implementation to sync your translations with translation.io.
 
+Used at [Tanda](https://tanda.co) on our [timeclocks](https://www.tanda.co/employee-time-clock/).
+
 ## Getting Started
 
 - First, create a project on [translation.io](https://translation.io) to store your translations
@@ -53,7 +55,7 @@ Also note that the `.translaterc` and environment variables are ignored when usi
 
 - [`react-intl-po`](https://github.com/evenchange4/react-intl-po) was a *huge* inspiration for the PO generation and a heavy influence on the code in `createPOTHeader.js` and the multiline comment handling in this project.  Check this out if you just need to generate PO files from `react-intl` extractions.  I had planned to use this as the base for this project, but they project didn't include a way to include `msgctxt` in the output.
 
-- [`translation-gem`](https://github.com/aurels/translation-gem) is the Ruby version of this project, and is the official implementation.  If you need a guarantee that the API won't change and it will maintain support with the service, I'd recommend that. This project is specifically for projects that don't have a Ruby on Rails dependency and don't want to add one.
+- [`translation-gem`](https://github.com/aurels/translation-gem) is the Ruby version of this project, and is the official implementation.  If you need a guarantee that the API won't change and it will maintain support with the service, I'd recommend that. This project is specifically for projects that don't have a Ruby on Rails dependency and don't want to add one. Special thanks goes to @MichaelHoste for his advice on this implementation.
 
 ## Licence
 
