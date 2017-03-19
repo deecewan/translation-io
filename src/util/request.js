@@ -9,6 +9,17 @@ function createTimestamp() {
   return Math.floor(Date.now() / 1000);
 }
 
+function printRequest({ url, method, baseURL, headers, params, data }) {
+  return JSON.stringify({
+    url,
+    method,
+    baseURL,
+    headers,
+    params,
+    data,
+  }, null, 2);
+}
+
 export default function getInstance(opts) {
   if (opts.debug) {
     debug('Creating `axios` instance', JSON.stringify(opts, null, 2));
@@ -19,7 +30,7 @@ export default function getInstance(opts) {
 
   instance.interceptors.request.use((config) => {
     if (opts.debug) {
-      debug('Sending config to server', config);
+      debug('Sending config to server', printRequest(config));
     }
     return {
       ...config,
@@ -36,7 +47,16 @@ export default function getInstance(opts) {
 
   instance.interceptors.response.use((res) => {
     if (opts.debug) {
-      debug('Response received', res);
+      debug(
+        'Response received',
+        printRequest(res.config),
+        JSON.stringify({
+          data: res.data,
+          status: res.status,
+          headers: res.headers,
+          statusText: res.statusText,
+        }, null, 2),
+      );
     }
     return res;
   }, (err) => {
