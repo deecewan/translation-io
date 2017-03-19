@@ -1,31 +1,40 @@
 /* @flow */
 
-function parsePiece(piece) {
-  const x = piece.split('"');
-  return {
-    [x[0].trim()]: x[1],
-  };
+function getMatch(line) {
+  return line.match(/^(msg(id|ctxt|str))/);
 }
 
 export default function parse(po: string): Object {
-  const pieces = po.split('\n').filter(piece => piece.indexOf('#') !== 0);
+  const blocks = po.split('\n\n');
+  const results = blocks.map((block) => {
+    const lines = block.split('\n').filter(line => line.indexOf('#') !== 0);
 
-  let currentResult = [];
-  const results = [];
+    const obj = {};
+    let currentToken = '';
+    let currentResult = [];
 
-  pieces.forEach((piece) => {
-    if (piece === '') {
-      results.push(currentResult);
-      currentResult = [];
-    } else {
-      currentResult.push(piece);
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      const match = getMatch(line);
+      if (match) {
+        currentToken = match[0];
+        currentResult.push(line.replace(/"/g, '').replace(currentToken, '').trim());
+        for (let j = i + 1; j < lines.length; j += 1) {
+          const l = lines[j];
+          if (getMatch(l)) {
+            i = j - 1;
+            break;
+          }
+          currentResult.push(l.replace(/"/g, '').trim());
+        }
+        obj[currentToken] = currentResult.join(' ');
+        currentResult = [];
+      }
     }
+    return obj;
   });
 
-  return results.map(result =>
-    result.map(parsePiece)
-    .reduce((p, c) => ({ ...p, ...c }), {}),
-  ).map(({ msgctxt, msgstr, msgid }) => {
+  return results.map(({ msgctxt, msgstr, msgid }) => {
     const str = msgstr !== '' ? msgstr : msgid;
     return {
       [msgctxt]: str,
