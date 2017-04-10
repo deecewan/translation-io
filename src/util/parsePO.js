@@ -25,9 +25,9 @@ export default function parse(po: string): Object {
             i = j - 1;
             break;
           }
-          currentResult.push(l.replace(/"/g, '').trim());
+          currentResult.push(l.replace(/"/g, ''));
         }
-        obj[currentToken] = currentResult.filter(i => i !== '').join(' ');
+        obj[currentToken] = currentResult.filter(i => i !== '').join('');
         currentResult = [];
       }
     }
