@@ -75,6 +75,11 @@ yargs // eslint-disable-line
   .alias('l', 'localesRoot')
   .describe('l', 'The root of your locales. Probably not especially useful to you.')
   .default('l', '<translationRoot>/gettext')
+  // suffix of the translated files
+  .string('x')
+  .alias('x', 'extenstion')
+  .describe('x', 'The extension to use on the translated files')
+  .default('x', 'yml')
   // domain
   .string('d')
   .alias('d', 'domain')

@@ -1,7 +1,7 @@
 {
   "name": "translation-io",
   "description": "An unofficial implementation to sync your translations with translation.io.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "lib/index.js",
   "author": {
     "name": "David Buchan-Swanson",

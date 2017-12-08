@@ -50,7 +50,7 @@ export default async function sync(options: Options): Promise<void> {
   const writeOps = Object.keys(res.data)
     .filter(key => /yaml_po_data/.test(key))
     .map(key => ({ key, data: res.data[key] }))
-    .map(item => ({ file: item.key.replace('yaml_po_data_', 'translation.').concat('.yml'), data: parse(item.data) }))
+    .map(item => ({ file: item.key.replace('yaml_po_data_', 'translation.').concat(`.${opts.extension}`), data: parse(item.data) }))
     .map(item => write(`${opts.translationRoot}/${item.file}`, JSON.stringify(item.data, null, 2)));
 
   await Promise.all(writeOps);
