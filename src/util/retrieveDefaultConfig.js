@@ -15,6 +15,7 @@ export type Options = {
   messagesGlob?: string, // defaults to <messagesRoot>/**/*.json
   debug?: boolean, // default to false
   purge?: boolean, // this option only applies to sync.  defaults to false
+  extension?: string,
 }
 
 export type EnforcedOptions = {
@@ -32,6 +33,7 @@ export type EnforcedOptions = {
   messagesGlob: string, // defaults to <messagesRoot>/**/*.json
   debug: boolean,
   purge: boolean, // only applies to sync
+  extension: string,
 }
 
 const defaultOpts: EnforcedOptions = {
@@ -49,6 +51,7 @@ const defaultOpts: EnforcedOptions = {
   messagesGlob: '<messagesRoot>/**/*.json',
   debug: false,
   purge: false,
+  extension: 'yml',
 };
 
 export default function defaults(providedOpts: Options): EnforcedOptions {

@@ -10,6 +10,7 @@ export default function extractTranslations(
   translationRoot: string,
   domain: string,
   sourceLocale: string,
+  extension: string = 'yml',
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     glob(messageGlob, (err, files) => {
@@ -29,7 +30,7 @@ export default function extractTranslations(
           return c;
         }, {});
 
-      return write(`${translationRoot}/translation.${sourceLocale}.yml`, JSON.stringify(defaults, null, 2))
+      return write(`${translationRoot}/translation.${sourceLocale}.${extension}`, JSON.stringify(defaults, null, 2))
         .then(() => resolve());
     });
   });

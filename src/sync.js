@@ -26,6 +26,7 @@ export default async function sync(options: Options): Promise<void> {
     opts.translationRoot,
     opts.domain,
     opts.sourceLocale,
+    opts.extension,
   );
   success('Translations extracted.');
   log('Retrieving changes from the server');

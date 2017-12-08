@@ -28,6 +28,7 @@ export default async function init(options: Options) {
     opts.translationRoot,
     opts.domain,
     opts.sourceLocale,
+    opts.extension,
   );
   success('Translations extracted.');
   log('Building POT file...');
