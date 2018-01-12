@@ -39,5 +39,5 @@ export default function parse(po: string): Object {
     return {
       [msgctxt]: str,
     };
-  }).reduce((p, c) => ({ ...p, ...c }));
+  }).reduce((p, c) => ({ ...p, ...c }), {});
 }
