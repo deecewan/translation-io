@@ -49,7 +49,7 @@ export function generatePOTEntries(globLocation: string, messageKey?: string = '
           const vals = val.map(message => new POTEntry(message));
           return { [key]: vals };
         })
-        .reduce((p, c) => ({ ...p, ...c }));
+        .reduce((p, c) => ({ ...p, ...c }), {});
       return resolve(mapped);
     });
   });
