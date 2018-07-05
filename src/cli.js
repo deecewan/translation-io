@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { readFileSync } from 'fs';
 import sync from './sync';
 import init from './init';
+import extract from './extract';
 
 yargs // eslint-disable-line
   .usage('$0 <command> [opts..]')
