@@ -32,6 +32,12 @@ yargs // eslint-disable-line
     () => {},
     argv => sync(argv),
   )
+  .command(
+    'extract',
+    'Extract your translations into a single hash',
+    () => {},
+    argv => extract(argv),
+  )
   // examples
   .example('$0 init', 'Initialise your project using the data inside of `.translaterc`')
   .example('$0 sync', 'Sync your translations')
