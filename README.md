@@ -22,6 +22,13 @@ The following options are available for configuration.  You can set these via th
 
 The entire program is configurable thanks to the amazing [yargs](http://yargs.js.org).  The only required field is `-k` or `--apiKey` to provide the API key.  This can also be included in your `.translaterc` config if your prefer.  If you're using this plugin inside your CI/CD environment to sync your translations during your build step, you can also configure everything via an environment variable.  For envvar support, just add `TRANSLATION` to the front of the prop.  For instance, `TRANSLATION_DEBUG=true` <=> `-v` <=> `--debug` <=> `{ "debug": true }` in a `.translaterc`.  For configuration options that are camelCase, the associated envvar is `TRANSLATION_CAMEL_CASE`.
 
+You can use:
+
+- `init` - sets up the project
+- `sync` - extracts your translations, sends them to the server, and downloads
+  the most recent versions from the server
+- `extract` - just extract translations
+
 ## API
 
 The functions behind the CLI are exposed in the module, but are still kind of up in the air right now.
