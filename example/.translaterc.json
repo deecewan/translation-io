@@ -1,0 +1,7 @@
+{
+  "apiKey": "test",
+  "messages": "./i18n/messages/**/*.json",
+  "sourceLocale": "en",
+  "targetLocales": ["en-AU", "en-US", "de"],
+  "output": "./i18n/translations"
+}
