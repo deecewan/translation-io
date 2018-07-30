@@ -1,51 +1,63 @@
 /* @flow */
-// perform the init
-// this is a CLI method. It does not return.
-import { debug, success, log } from './util/debugLog';
-import type { Options } from './util/retrieveDefaultConfig';
-import defaults from './util/retrieveDefaultConfig';
-import { buildPOTFile } from './updatePOTFile';
-import { write, mkdirp } from './util/fileOps';
-import extractTranslations from './util/extractTranslations';
-import createYamlFiles from './util/createYamlFiles';
-import createPOFiles from './util/createPOFiles';
-import createRequester from './util/request';
 
-export default async function init(options: Options) {
-  log('Initializing new translation.io project');
-  /**
-   * Update the POT file
-   */
-  const opts = defaults(options);
-  if (opts.debug) {
-    debug('Loaded options', JSON.stringify(opts, null, 2));
-  }
-  const req = createRequester(opts);
-  await mkdirp(opts.potPath);
-  log('Extracting translations...');
-  await extractTranslations(
-    opts.messagesGlob,
-    opts.translationRoot,
-    opts.domain,
-    opts.sourceLocale,
-    opts.extension,
-  );
-  success('Translations extracted.');
-  log('Building POT file...');
-  const potFile = await buildPOTFile(opts.messagesGlob, opts.messageKey);
-  success('Built POT File');
-  await write(opts.potPath, potFile);
-  success('POT file written to', opts.potPath);
-  log('Creating YAML Files');
-  await createYamlFiles(opts);
-  success('Created YAML Files');
-  log('Creating PO Files');
-  const poFiles = await createPOFiles(opts.messagesGlob, opts.messageKey);
-  const params = opts.targetLocales.reduce((param, locale) => ({
-    ...param,
-    [`yaml_po_data_${locale}`]: poFiles,
-  }), {});
+import { join } from 'path';
+import is from 'sarcastic';
+import * as log from './log';
+import * as req from './request';
+import * as util from './util';
+import * as config from './config';
+import { load } from './extract';
 
-  await req.post('/init', params);
-  success('Completed init.  You can sync now.');
-}
+const RESPONSE_SHAPE = is.shape({
+  project_name: is.string,
+  project_url: is.string,
+});
+
+export default () => {
+  log.info('Running `init`.');
+  log.info('Loading translations from disk...');
+  const translations = load(config.messages());
+  log.info('Translations loaded.');
+
+  log.info('Generating PO data for translations...');
+  const potData = util.poGenerator(translations);
+
+  const params = config
+    .targetLocales()
+    .map((locale) => ({ [`yaml_po_data_${locale}`]: potData }))
+    .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+  log.info('PO data generated.');
+
+  log.info('Posting payload to `translation.io/init`');
+  req
+    .post('/init', params)
+    .then((res) => {
+      log.info('Request made. Processing...');
+      const { data } = res;
+      const knownData = is(data, RESPONSE_SHAPE, 'init_response');
+
+      log.info('Writing received translations to disk...');
+      // now we need to save the data that has come back
+      const object = is(data, is.objectOf(is.string), 'init_response');
+
+      config.targetLocales().forEach((locale) => {
+        const poData = object[`yaml_po_data_${locale}`];
+        if (poData) {
+          util.write(
+            join(config.output(), `translation.${locale}.json`),
+            JSON.stringify(util.parsePoData(poData), null, 2),
+          );
+        }
+      });
+      log.info('Written translations to disk.');
+
+      log.success(
+        `Successfully initialised project \`${knownData.project_name}\` at ${
+          knownData.project_url
+        }`,
+      );
+    })
+    .catch(() => {
+      log.error('Failed to initialize project');
+    });
+};

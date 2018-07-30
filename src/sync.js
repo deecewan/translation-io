@@ -1,60 +1,111 @@
 /* @flow */
 
-import type { Options } from './util/retrieveDefaultConfig';
-import { debug, success, log, warn } from './util/debugLog';
-import defaults from './util/retrieveDefaultConfig';
-import { buildPOTFile } from './updatePOTFile';
-import { write, remove, mkdirp } from './util/fileOps';
-import extractTranslations from './util/extractTranslations';
-import createRequester from './util/request';
-import retrieveSourceEdits from './util/retrieveSourceEdits';
-import createPOFiles from './util/createPOFiles';
-import parse from './util/parsePO';
+import { join } from 'path';
+import is from 'sarcastic';
+import { load } from './extract';
+import * as config from './config';
+import * as log from './log';
+import * as req from './request';
+import * as util from './util';
 
-export default async function sync(options: Options): Promise<void> {
-  log('Setting everything up...');
-  const opts = defaults(options);
-  await mkdirp(opts.potPath);
-  if (opts.debug) {
-    debug('Loaded options', JSON.stringify(opts, null, 2));
-  }
-  const req = createRequester(opts);
-  success('Setup Complete.');
-  log('Extracting new translations...');
-  await extractTranslations(
-    opts.messagesGlob,
-    opts.translationRoot,
-    opts.domain,
-    opts.sourceLocale,
-    opts.extension,
-  );
-  success('Translations extracted.');
-  log('Retrieving changes from the server');
-  const sourceEdits = await retrieveSourceEdits(opts);
+const SOURCE_EDITS = is.arrayOf(
+  is.shape({
+    key: is.string,
+    old_text: is.string,
+    new_text: is.string,
+  }),
+);
+
+export default async () => {
+  log.info('Running `sync`.');
+
+  // ApplyYamlSourceEditsStep
+
+  log.info('Retrieving source edits...');
+  const sourceEdits = await req
+    .post('/source_edits', {
+      timestamp: util.timestamp(),
+    })
+    .then((res) => is(res.data.source_edits, SOURCE_EDITS, 'source_edits'));
+
   if (sourceEdits.length > 0) {
-    warn('Source edits not empty????????', sourceEdits);
+    log.warn('Source has been edited on `translation.io`.');
+    log.warn(
+      "This is not currently supported - you'll need to manually update the keys.",
+    );
+    sourceEdits.forEach((edit) => {
+      log.warn(
+        `  Changed \`${edit.key}\`: Replace '${edit.old_text}' with '${
+          edit.new_text
+        }'`,
+      );
+    });
+    log.warn(
+      'You can ignore any of these that have already been updated locally',
+    );
   }
-  success('Translation changes received');
-  log('Updating POT File...');
-  const potFile = await buildPOTFile(opts.messagesGlob, opts.messageKey);
-  await write(opts.potPath, potFile);
-  success('POT file written');
-  log('Creating contextual POT file...');
-  const poFiles = await createPOFiles(opts.messagesGlob, opts.messageKey);
-  success('Retrieved context POT file.');
-  const params = {
-    yaml_pot_data: poFiles,
-    purge: opts.purge,
-  };
-  log('Retrieving sync changes...');
-  const res = await req.post('/sync', params);
-  const writeOps = Object.keys(res.data)
-    .filter(key => /yaml_po_data/.test(key))
-    .map(key => ({ key, data: res.data[key] }))
-    .map(item => ({ file: item.key.replace('yaml_po_data_', 'translation.').concat(`.${opts.extension}`), data: parse(item.data) }))
-    .map(item => write(`${opts.translationRoot}/${item.file}`, JSON.stringify(item.data, null, 2)));
+  log.info('Source edits retreived.');
 
-  await Promise.all(writeOps);
-  await remove(opts.localesRoot);
-  success('Successfully synced translations');
-}
+  // CreateYamlPotFileStep
+
+  log.info('Loading translations from disk...');
+  const translations = load(config.messages());
+  log.info('Translations loaded.');
+
+  log.info('Writing translation file for source locale.');
+  util.write(
+    join(config.output(), `translation.${config.sourceLocale()}.json`),
+    JSON.stringify(translations, null, 2),
+  );
+
+  log.info('Generating PO data for translations...');
+  const potData = util.poGenerator(translations);
+  log.info('PO data generated.');
+
+  log.info('Syncing data with `translation.io`...');
+  const data = await req
+    .post('/sync', {
+      yaml_pot_data: potData,
+      timestamp: util.timestamp(),
+    })
+    .then((res) => res.data);
+  log.info('Retrieved data from `translation.io`.');
+
+  if (data.unused_segments) {
+    const unusedSegments = is(
+      data.unused_segments,
+      is.arrayOf(
+        is.shape({
+          msgctxt: is.string,
+          msgid: is.string,
+        }),
+      ),
+      'unused_segments',
+    );
+
+    if (unusedSegments.length > 0) {
+      log.warn(
+        "You have unused segments. You should make sure these aren't used anywhere else before you remove them.",
+      );
+      unusedSegments.forEach((seg) => {
+        log.warn(`  - \`${seg.msgctxt}\` ('${seg.msgid}') is unused.`);
+      });
+    }
+  }
+
+  log.info('Writing received translations to disk...');
+  config.targetLocales().forEach((locale) => {
+    const poData = data[`yaml_po_data_${locale}`];
+    if (typeof poData !== 'string') {
+      log.warn(`Didn't get any translations from the server for ${locale}.`);
+      return;
+    }
+    util.write(
+      join(config.output(), `translation.${locale}.json`),
+      JSON.stringify(util.parsePoData(poData), null, 2),
+    );
+  });
+  log.info('Translations written do disk.');
+
+  log.success('Successfully completed sync.');
+};
