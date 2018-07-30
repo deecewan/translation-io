@@ -5,7 +5,8 @@
   "license": "MIT",
   "bin": { "translate": "./lib/index.js" },
   "scripts": {
-    "build": "babel -d lib src/**/*.js"
+    "build": "babel -d lib src/**/*.js",
+    "prepublish": "yarn build"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
