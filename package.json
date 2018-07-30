@@ -1,14 +1,12 @@
 {
   "name": "translation-io",
   "version": "0.2.0",
+  "author": "David Buchan-Swanson <david.buchanswanson@gmail.com>",
+  "license": "MIT",
+  "bin": { "translate": "./lib/index.js" },
   "scripts": {
     "build": "babel -d lib src/**/*.js"
   },
-  "keywords": [
-    "BuckleScript"
-  ],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0-beta.54",
