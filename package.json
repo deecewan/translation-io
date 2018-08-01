@@ -3,13 +3,14 @@
   "version": "0.2.1",
   "author": "David Buchan-Swanson <david.buchanswanson@gmail.com>",
   "license": "MIT",
-  "bin": {
-    "translate": "./lib/index.js"
-  },
+  "bin": { "translate": "./lib/index.js" },
   "scripts": {
     "build": "babel -d lib src/**/*.js",
     "prepublish": "yarn build"
   },
+  "files": [
+    "lib"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0-beta.54",
