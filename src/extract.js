@@ -11,29 +11,37 @@ import * as log from './log';
 export const load = (glob: string) => {
   const files: Array<string> = sync(glob);
 
-  return files
+  const allTranslations = files
     .map((file) => {
       try {
         const content = util.read(file);
         const json = JSON.parse(content);
 
-        return is(json, is.objectOf(is.string), file);
+        return is(
+          json,
+          is.arrayOf(
+            is.shape({
+              id: is.string,
+              defaultMessage: is.string,
+            }),
+          ),
+          file,
+        );
       } catch (e) {
         log.error(`Error extracting JSON from \`${file}\`: ${e.message}`);
         throw e;
       }
     })
-    .reduce((acc, curr) => {
-      const int: Array<string> = intersection(
-        Object.keys(acc),
-        Object.keys(curr),
-      );
-      int.forEach((duplicate) => {
-        log.warn(`Duplicate translation keys: ${duplicate}.`);
-      });
+    .reduce((acc, curr) => [...acc, ...curr], []);
 
-      return { ...acc, ...curr };
-    }, {});
+  const obj = {};
+  allTranslations.forEach((t) => {
+    if (obj[t.id] !== undefined) {
+      log.warn(`Duplicate translation keys: ${t.id}.`);
+    }
+    obj[t.id] = t.defaultMessage;
+  });
+  return obj;
 };
 
 export default () => {
