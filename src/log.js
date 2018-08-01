@@ -14,13 +14,14 @@ const debugEnabled = () => {
 
 const shouldPrint = () => !args.quiet && (args.verbose > 0 || debugEnabled());
 
-export const verbose = (str: string) =>
-  // eslint-disable-next-line no-console
-  shouldPrint && args.verbose > 1 ? console.log(chalk.magenta(str)) : undefined;
+export const verbose = (...str: Array<string>) =>
+  shouldPrint && args.verbose > 1
+    ? console.log(chalk.magenta(...str)) // eslint-disable-line no-console
+    : undefined;
 
-export const info = (str: string) =>
+export const info = (...str: Array<string>) =>
   // eslint-disable-next-line no-console
-  shouldPrint() ? console.log(chalk.cyan(str)) : undefined;
+  shouldPrint() ? console.log(chalk.cyan(...str)) : undefined;
 
 const print = (fn) => (str: string) =>
   // eslint-disable-next-line no-console

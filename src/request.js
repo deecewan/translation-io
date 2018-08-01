@@ -39,12 +39,13 @@ instance.interceptors.response.use(
     return res;
   },
   (err) => {
-    log.error(
-      `Error with request to \`${err.config.url}\`: ${
-        err.response ? err.response.data : 'No Response'
-      }`,
-    );
-    return err;
+    log.error(`Error with request to \`${err.config.url}\``);
+    if (err.response) {
+      const res = err.response;
+      log.error(`${res.status}: ${res.statusText}`);
+      log.error(JSON.stringify(res.data, null, 2));
+    }
+    throw err;
   },
 );
 
