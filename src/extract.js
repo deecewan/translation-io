@@ -2,8 +2,8 @@
 
 import { join } from 'path';
 import { sync } from 'glob';
+import mkdirp from 'mkdirp';
 import is from 'sarcastic';
-import intersection from 'lodash.intersection';
 import * as util from './util';
 import * as config from './config';
 import * as log from './log';
@@ -49,6 +49,10 @@ export default () => {
   log.info('Extracting translations...');
   const translations = JSON.stringify(load(config.messages()), null, 2);
   log.info('Translations extracted.');
+
+  log.info('Ensuring that the output directory exists...');
+  mkdirp.sync(config.output());
+  log.info('Output directory exists.');
 
   log.info('Writing translation files...');
   config

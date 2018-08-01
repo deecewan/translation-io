@@ -31,7 +31,7 @@
     "axios": "^0.18.0",
     "chalk": "^2.4.1",
     "glob": "^7.1.2",
-    "lodash.intersection": "^4.4.0",
+    "mkdirp": "^0.5.1",
     "sarcastic": "^1.4.0"
   }
 }
