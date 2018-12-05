@@ -35,12 +35,24 @@ export const load = (glob: string) => {
     .reduce((acc, curr) => [...acc, ...curr], []);
 
   const obj = {};
+  let error = false;
   allTranslations.forEach((t) => {
     if (obj[t.id] !== undefined) {
       log.warn(`Duplicate translation keys: ${t.id}.`);
     }
+    if (t.defaultMessage.includes('\n')) {
+      log.error(
+        'Translations should not contain newlines. Please remove the newline.',
+      );
+      log.error(`  \`${t.id}\` ("${t.defaultMessage}")`);
+      error = true;
+    }
     obj[t.id] = t.defaultMessage;
   });
+  if (error) {
+    log.error('Stopping due to errors');
+    process.exit(1);
+  }
   return obj;
 };
 
