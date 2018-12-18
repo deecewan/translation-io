@@ -8,6 +8,14 @@ import * as util from './util';
 import * as config from './config';
 import * as log from './log';
 
+const minimalFormat = is.objectOf(is.string);
+const jsonFormat = is.arrayOf(
+  is.shape({
+    id: is.string,
+    defaultMessage: is.string,
+  }),
+);
+
 export const load = (glob: string) => {
   const files: Array<string> = sync(glob);
 
@@ -17,16 +25,17 @@ export const load = (glob: string) => {
         const content = util.read(file);
         const json = JSON.parse(content);
 
-        return is(
-          json,
-          is.arrayOf(
-            is.shape({
-              id: is.string,
-              defaultMessage: is.string,
-            }),
-          ),
-          file,
-        );
+        const format = config.format() === 'json' ? jsonFormat : minimalFormat;
+
+        const parsed = is(json, format, file);
+
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+        return Object.keys(parsed).map((key) => ({
+          id: key,
+          defaultMessage: parsed[key],
+        }));
       } catch (e) {
         log.error(`Error extracting JSON from \`${file}\`: ${e.message}`);
         throw e;

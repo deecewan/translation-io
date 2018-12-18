@@ -11,6 +11,8 @@ const CONFIG_SHAPE = is.shape({
   sourceLocale: is.string,
   targetLocales: is.arrayOf(is.string),
   output: is.string,
+  // one of 'json' | 'minimal'
+  format: is.maybe(is.string),
 });
 
 type Config = AssertionType<typeof CONFIG_SHAPE>;
@@ -42,3 +44,4 @@ export const sourceLocale = () => get().sourceLocale;
 export const targetLocales = () => get().targetLocales;
 export const output = () => get().output;
 export const locales = () => get().targetLocales.concat(get().sourceLocale);
+export const format = () => get().format || 'json';
