@@ -1,6 +1,6 @@
 {
   "name": "translation-io",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "author": "David Buchan-Swanson <david.buchanswanson@gmail.com>",
   "license": "MIT",
   "bin": {
