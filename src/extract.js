@@ -34,7 +34,9 @@ export const load = (glob: string) => {
         }
         return Object.keys(parsed).map((key) => ({
           id: key,
-          defaultMessage: parsed[key],
+          // when in `minimal` format, the name of the key in the source is
+          // the deafult message
+          defaultMessage: key,
         }));
       } catch (e) {
         log.error(`Error extracting JSON from \`${file}\`: ${e.message}`);
