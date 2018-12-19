@@ -11,7 +11,7 @@ const CONFIG_SHAPE = is.shape({
   sourceLocale: is.string,
   targetLocales: is.arrayOf(is.string),
   output: is.string,
-  // one of 'json' | 'minimal'
+  // one of 'json' | 'minimal' | 'lingui'
   format: is.maybe(is.string),
 });
 

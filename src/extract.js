@@ -3,18 +3,49 @@
 import { join } from 'path';
 import { sync } from 'glob';
 import mkdirp from 'mkdirp';
-import is from 'sarcastic';
+import is, { type AssertionType } from 'sarcastic';
 import * as util from './util';
 import * as config from './config';
 import * as log from './log';
 
-const minimalFormat = is.objectOf(is.string);
-const jsonFormat = is.arrayOf(
+const MINIMAL_FORMAT = is.objectOf(is.string);
+const JSON_FORMAT = is.arrayOf(
   is.shape({
     id: is.string,
     defaultMessage: is.string,
   }),
 );
+const LINGUI_FORMAT = is.objectOf(
+  is.shape({
+    defaults: is.maybe(is.string),
+  }),
+);
+
+// eslint-disable-next-line flowtype/no-weak-types
+const normalize: (any, string) => AssertionType<typeof JSON_FORMAT> = (
+  json,
+  format,
+) => {
+  switch (format) {
+    case 'minimal':
+      return Object.keys(is(json, MINIMAL_FORMAT)).map((key) => ({
+        id: key,
+        // when in `minimal` format, the name of the key in the source is
+        // the default message
+        defaultMessage: key,
+      }));
+    case 'lingui':
+      // eslint-disable-next-line no-case-declarations
+      const parsed = is(json, LINGUI_FORMAT);
+      return Object.keys(is(json, LINGUI_FORMAT)).map((key) => ({
+        id: key,
+        defaultMessage: parsed[key].defaults || key,
+      }));
+    case 'json':
+    default:
+      return is(json, JSON_FORMAT);
+  }
+};
 
 export const load = (glob: string) => {
   const files: Array<string> = sync(glob);
@@ -25,19 +56,7 @@ export const load = (glob: string) => {
         const content = util.read(file);
         const json = JSON.parse(content);
 
-        const format = config.format() === 'json' ? jsonFormat : minimalFormat;
-
-        const parsed = is(json, format, file);
-
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-        return Object.keys(parsed).map((key) => ({
-          id: key,
-          // when in `minimal` format, the name of the key in the source is
-          // the deafult message
-          defaultMessage: key,
-        }));
+        return normalize(json, config.format());
       } catch (e) {
         log.error(`Error extracting JSON from \`${file}\`: ${e.message}`);
         throw e;
