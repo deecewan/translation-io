@@ -4,6 +4,7 @@ import { join } from 'path';
 import is from 'sarcastic';
 import mkdirp from 'mkdirp';
 import { load } from './extract';
+import args from './args';
 import * as config from './config';
 import * as log from './log';
 import * as req from './request';
@@ -68,10 +69,18 @@ export default async () => {
   log.info('PO data generated.');
 
   log.info('Syncing data with `translation.io`...');
+  const extra = {};
+  if (args.purge) {
+    extra.purge = 'true';
+  }
+  if (args.readonly) {
+    extra.readonly = 'true';
+  }
   const data = await req
     .post('/sync', {
       yaml_pot_data: potData,
       timestamp: util.timestamp(),
+      ...extra,
     })
     .then((res) => res.data);
   log.info('Retrieved data from `translation.io`.');
