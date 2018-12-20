@@ -21,6 +21,19 @@ const LINGUI_FORMAT = is.objectOf(
   }),
 );
 
+const normalizeId = config.normalizeIds()
+  ? (key) =>
+      key
+        .replace(/[^A-Za-z ]/g, '')
+        .replace(/ /g, '.')
+        .slice(0, 40)
+        .toLowerCase()
+  : (k) => k;
+
+const normalizeMessage = config.stripNewlines()
+  ? (message) => message.replace(/\n */g, ' ')
+  : (m) => m;
+
 // eslint-disable-next-line flowtype/no-weak-types
 const normalize: (any, string) => AssertionType<typeof JSON_FORMAT> = (
   json,
@@ -29,21 +42,24 @@ const normalize: (any, string) => AssertionType<typeof JSON_FORMAT> = (
   switch (format) {
     case 'minimal':
       return Object.keys(is(json, MINIMAL_FORMAT)).map((key) => ({
-        id: key,
+        id: normalizeId(key),
         // when in `minimal` format, the name of the key in the source is
         // the default message
-        defaultMessage: key,
+        defaultMessage: normalizeMessage(key),
       }));
     case 'lingui':
       // eslint-disable-next-line no-case-declarations
       const parsed = is(json, LINGUI_FORMAT);
       return Object.keys(is(json, LINGUI_FORMAT)).map((key) => ({
-        id: key,
-        defaultMessage: parsed[key].defaults || key,
+        id: normalizeId(key),
+        defaultMessage: normalizeMessage(parsed[key].defaults || key),
       }));
     case 'json':
     default:
-      return is(json, JSON_FORMAT);
+      return is(json, JSON_FORMAT).map(({ id, defaultMessage }) => ({
+        id: normalizeId(id),
+        defaultMessage: normalizeMessage(defaultMessage),
+      }));
   }
 };
 

@@ -12,7 +12,11 @@ const CONFIG_SHAPE = is.shape({
   targetLocales: is.arrayOf(is.string),
   output: is.string,
   // one of 'json' | 'minimal' | 'lingui'
-  format: is.maybe(is.string),
+  format: is.default(is.string, 'json'),
+  // allow message ids to be created automatically (for Lingui)
+  normalizeIds: is.default(is.boolean, false),
+  // strip newlines - they are problematic for t.io, so we can remove them
+  stripNewlines: is.default(is.boolean, false),
 });
 
 type Config = AssertionType<typeof CONFIG_SHAPE>;
@@ -44,4 +48,6 @@ export const sourceLocale = () => get().sourceLocale;
 export const targetLocales = () => get().targetLocales;
 export const output = () => get().output;
 export const locales = () => get().targetLocales.concat(get().sourceLocale);
-export const format = () => get().format || 'json';
+export const format = () => get().format;
+export const normalizeIds = () => get().normalizeIds;
+export const stripNewlines = () => get().stripNewlines;
